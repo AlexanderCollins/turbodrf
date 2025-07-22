@@ -8,6 +8,10 @@ from rest_framework.response import Response
 from .permissions import DefaultDjangoPermission, TurboDRFPermission
 from .serializers import TurboDRFSerializer
 
+from allauth.headless.contrib.rest_framework.authentication import (
+    XSessionTokenAuthentication,
+)
+from rest_framework import permissions
 
 class TurboDRFPagination(PageNumberPagination):
     """
@@ -133,11 +137,25 @@ class TurboDRFViewSet(viewsets.ModelViewSet):
         if not getattr(settings, "TURBODRF_DISABLE_PERMISSIONS", False)
         else []
     )
+    
     pagination_class = TurboDRFPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     model = None  # Will be set by the router
 
+    def initial(self, request, *args, **kwargs):
+        """
+        Override to dynamically configure authentication and permission classes
+        based on the model's `turbodrf()` configuration.
+        """
+        super().initial(request, *args, **kwargs)
+
+        config = getattr(self.model, "turbodrf", lambda: {})()
+
+        if getattr(settings, "TURBODRF_ENABLE_ALLAUTH", False) and config.get("auth", False):
+            self.authentication_classes = [XSessionTokenAuthentication]
+            self.permission_classes = [permissions.IsAuthenticated]
+            
     def get_serializer_class(self):
         """
         Dynamically create a serializer class based on model configuration.
