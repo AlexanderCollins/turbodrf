@@ -267,3 +267,23 @@ class RoleBasedSchemaGenerator(OpenAPISchemaGenerator):
 
         schema["properties"] = filtered_properties
         return schema
+
+    def get_endpoints(self, request):
+        endpoints = super().get_endpoints(request)
+
+        if isinstance(endpoints, dict):
+            filtered_dict = {}
+            for path, (viewset, methods) in endpoints.items():
+                if path.endswith('/') or '.' in path.split('/')[-1]:
+                    filtered_dict[path] = (viewset, methods)
+            endpoints = filtered_dict
+        else:
+            filtered_dict = {}
+            for (path, path_regex, method, callback) in endpoints:
+                if path.endswith('/') or '.' in path.split('/')[-1]:
+                    if path not in filtered_dict:
+                        filtered_dict[path] = ([], [])
+                    filtered_dict[path][1].append((method, callback))
+            endpoints = filtered_dict
+
+        return endpoints

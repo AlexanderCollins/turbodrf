@@ -16,7 +16,7 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
 
-def get_turbodrf_schema_view():
+def get_turbodrf_schema_view(title="TurboDRF API", version="v1", description="Auto-generated API with role-based access control powered by TurboDRF"):
     """
     Create and configure the schema view for TurboDRF API documentation.
 
@@ -76,12 +76,9 @@ def get_turbodrf_schema_view():
 
     schema_view = get_schema_view(
         openapi.Info(
-            title="TurboDRF API",
-            default_version="v1",
-            description=(
-                "Auto-generated API with role-based access control "
-                "powered by TurboDRF"
-            ),
+            title=title,
+            default_version=version,
+            description=description,
             terms_of_service="https://www.example.com/terms/",
             contact=openapi.Contact(email="contact@example.com"),
             license=openapi.License(name="MIT License"),
