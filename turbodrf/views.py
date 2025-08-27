@@ -424,7 +424,7 @@ class TurboDRFViewSet(viewsets.ModelViewSet):
 
             # Skip fields that django-filter doesn't support or that
             # don't make sense to filter
-            unsupported_fields = ["JSONField", "BinaryField", "FilePathField"]
+            unsupported_fields = ["JSONField", "BinaryField", "FilePathField", "ImageField]
             if field_class_name in unsupported_fields:
                 continue
 
