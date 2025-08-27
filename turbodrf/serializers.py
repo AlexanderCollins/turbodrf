@@ -51,27 +51,26 @@ class TurboDRFSerializer(serializers.ModelSerializer):
         # Handle nested fields if they're defined
         if hasattr(self.Meta, "_nested_fields"):
             for base_field, nested_fields in self.Meta._nested_fields.items():
-                # Process each nested field
                 for nested_field in nested_fields:
-                    # Construct full field path
-                    if "__" in nested_field:
-                        # Already a full path
-                        full_field_path = nested_field
-                    else:
-                        # Partial path, prepend base field
-                        full_field_path = f"{base_field}__{nested_field}"
+                    full_field_path = nested_field if "__" in nested_field else f"{base_field}__{nested_field}"
 
-                    # Navigate through the relationship
                     value = instance
                     try:
-                        for part in full_field_path.split("__"):
+                        parts = full_field_path.split("__")
+                        for i, part in enumerate(parts):
                             if value is None:
                                 break
-                            value = getattr(value, part, None)
+                            attr = getattr(value, part, None)
+                            if isinstance(attr, models.Manager):  # ManyToMany
+                                value = list(attr.values_list(parts[-1], flat=True))
+                                break
+                            else:
+                                value = attr
 
-                        # Add the nested field value with underscores
                         field_name = full_field_path.replace("__", "_")
                         data[field_name] = value
+                        if base_field in data and base_field != field_name:
+                            data.pop(base_field)
                     except Exception:
                         pass
 
